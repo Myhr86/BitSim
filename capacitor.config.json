@@ -1,0 +1,8 @@
+{
+  "appId": "no.lifepath.game",
+  "appName": "LifePath",
+  "webDir": "dist",
+  "backgroundColor": "#0f1720",
+  "ios": { "contentInset": "never" },
+  "android": { "allowMixedContent": false }
+}

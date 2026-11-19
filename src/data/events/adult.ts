@@ -1,0 +1,272 @@
+import type { EventDef } from '@/types/events';
+import { C, bad, bias, choice, cond, delayed, disc, ev, fit, flag, gain, good, happy, health, later, mod, money, out, pay, perf, pick, rel, rep, smart, stress } from './helpers';
+
+/** Adulthood: 30–64. Career, family responsibilities, property, investments and health. */
+export const ADULT_EVENTS: EventDef[] = [
+  ev({ id: 'ad_promotion_offer', category: 'career', title: 'Lederstilling', text: 'Sjefen tilbyr deg å lede et nytt team. Mer lønn, mer ansvar, mindre fritid.', minAge: 28, maxAge: 60, weight: 5, tone: 'neutral', icon: 'trending-up', conditions: [C.employed()], cooldown: 5,
+    choices: [
+      choice('Takke ja', [good('Teamet ditt leverte over all forventning.', [perf(10), { t: 'salaryPct', pct: 0.12, fallback: 0, label: 'Ledertillegg' }, stress(8), rep(4)], { bias: [bias('discipline', 0.5), bias('reputation', 0.3)] }), bad('Ansvaret ble for mye. Du gikk på veggen.', [stress(15), perf(-6), cond('burnout', 50)])]),
+      pick('Takke nei', 'Du prioriterer familie og fritid. Sjefen respekterte det – nesten.', [happy(2), perf(-2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_restructuring', category: 'career', title: 'Omorganisering', text: '{company} skal kutte 20 % av de ansatte. Alle må søke på nytt på sine stillinger.', minAge: 25, maxAge: 64, weight: 3, tone: 'negative', icon: 'scissors', conditions: [C.employed()], cooldown: 8,
+    mods: [mod(C.economy('recession'), 3)],
+    choices: [
+      choice('Søke på egen stilling', [good('Du beholdt jobben. Lettelse!', [stress(4)], { w: 3, bias: [bias('discipline', 0.4)] }), bad('Du var blant dem som måtte gå.', [{ t: 'loseJob', reason: 'laidOff' }], { w: 1 })]),
+      pick('Ta sluttpakke', 'Du fikk seks månedslønner og takket for deg.', [{ t: 'salaryPct', pct: 0.5, fallback: 50_000, label: 'Sluttpakke' }, { t: 'loseJob', reason: 'laidOff' }], 'financial'),
+    ] }),
+  ev({ id: 'ad_boss_conflict', category: 'career', title: 'Konflikt med sjefen', text: '{boss} tar æren for arbeidet ditt i et viktig møte.', minAge: 20, maxAge: 66, weight: 4, tone: 'negative', icon: 'angry', conditions: [C.employed(), C.rel('boss')], cooldown: 4,
+    choices: [
+      pick('Konfrontere sjefen privat', 'Sjefen beklaget. Respekten økte.', [rel('boss', 5), rep(2), stress(2)], 'positive'),
+      choice('Si fra i møtet', [good('Alle så hvem som egentlig gjorde jobben.', [rep(4), rel('boss', -10)], { w: 1 }), bad('Det ble pinlig. Sjefen glemmer det ikke.', [rel('boss', -20), perf(-6)], { w: 1 })]),
+      pick('Svelge det', 'Du lot det passere. Det gnager.', [stress(4), happy(-2)], 'negative'),
+    ] }),
+  ev({ id: 'ad_coworker_friend', category: 'career', title: 'Lunsjvenn', text: '{target} og du har blitt gode venner på jobben.', minAge: 18, maxAge: 66, weight: 4, tone: 'relationship', icon: 'coffee', target: { kinds: ['coworker'], minStrength: 45 }, maxOccurrences: 2,
+    choices: [
+      pick('Invitere på middag', '{target} er nå en venn også utenfor jobben.', [{ t: 'promoteRel', target: 'bound', kind: 'friend' }, rel('bound', 10)], 'positive'),
+      pick('Holde det på jobben', 'Kollegial vennlighet.', [rel('bound', 3)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_job_offer_competitor', category: 'career', title: 'Headhuntet', text: 'En konkurrent ringer og tilbyr deg 20 % høyere lønn.', minAge: 25, maxAge: 60, weight: 3, tone: 'financial', icon: 'phone-incoming', conditions: [C.employed(), C.stat('reputation', 55)], cooldown: 6,
+    choices: [
+      pick('Bruke tilbudet i lønnsforhandling', 'Arbeidsgiveren matchet nesten tilbudet!', [{ t: 'salaryPct', pct: 0.12, fallback: 0, label: 'Lojalitetsbonus' }, perf(2)], 'positive'),
+      pick('Bli der du er', 'Lojalitet har verdi.', [rel('boss', 5)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_bonus', category: 'career', title: 'Bonus!', text: 'Selskapet har gått rekordbra.', minAge: 20, maxAge: 66, weight: 4, tone: 'financial', icon: 'gift', conditions: [C.employed(), C.occ(['finance', 'tech', 'industry', 'law'])], cooldown: 3,
+    mods: [mod(C.economy('boom'), 2.5)],
+    outcomes: [good('Du fikk en bonus på {amount}!', [gain('amount', 'Bonus'), happy(4)])], vars: { amount: { t: 'salaryPct', pct: 0.1, fallback: 20_000 } } }),
+  ev({ id: 'ad_midlife_crisis', category: 'random', title: 'Midtlivskrise', text: 'Du våkner og lurer på om dette er alt livet har å by på.', minAge: 40, maxAge: 55, weight: 4, tone: 'neutral', icon: 'compass', maxOccurrences: 1,
+    choices: [
+      pick('Kjøpe en sportsbil', 'Det hjalp – i omtrent tre uker.', [money(-400_000, 'Sportsbil (brukt)'), happy(5), rep(-1)], 'neutral'),
+      pick('Begynne med triatlon', 'Du kom i ditt livs form.', [fit(10), health(4), stress(-4), money(-30_000, 'Sykkelutstyr')], 'positive'),
+      pick('Skifte karriere', 'Du sa opp og begynte å se etter noe nytt.', [{ t: 'loseJob', reason: 'fired' }, happy(4), stress(-5)], 'neutral', { cond: [C.employed()] }),
+      pick('Snakke med partneren', 'Dere fant tilbake til gnisten.', [rel('partner', 10), happy(4)], 'positive', { cond: [C.rel(['partner', 'spouse'])] }),
+    ] }),
+  ev({ id: 'ad_child_school_trouble', category: 'family', title: 'Telefon fra skolen', text: 'Læreren til {target} ringer. Det har vært bråk i timene.', minAge: 25, maxAge: 70, weight: 5, tone: 'negative', icon: 'phone', target: { kinds: ['child'], minAge: 7, maxAge: 16 }, cooldown: 3,
+    choices: [
+      pick('Ha en alvorsprat', '{target} lovet å skjerpe seg.', [rel('bound', -2), { t: 'npcStat', target: 'bound', key: 'discipline', delta: 8 }], 'neutral'),
+      pick('Bruke mer tid sammen', 'Det viste seg at {target} følte seg oversett. Mer tid hjalp.', [rel('bound', 10), stress(2), { t: 'npcStat', target: 'bound', key: 'happiness', delta: 10 }], 'positive'),
+      pick('Skylde på læreren', '{target} lærte at det ikke har konsekvenser.', [{ t: 'npcStat', target: 'bound', key: 'discipline', delta: -6 }], 'negative'),
+    ] }),
+  ev({ id: 'ad_child_hobby_cost', category: 'family', title: 'Dyr hobby', text: '{target} vil begynne på ishockey. Utstyr og turneringer koster {amount} i året.', minAge: 25, maxAge: 65, weight: 4, tone: 'financial', icon: 'trophy', target: { kinds: ['child'], minAge: 6, maxAge: 15 }, maxOccurrences: 2, cooldown: 4,
+    vars: { amount: { t: 'range', min: 15_000, max: 40_000, step: 1000 } },
+    choices: [
+      pick('Betale', '{target} elsker det, og du står på sidelinjen hver helg.', [pay('amount', 'Barnets hobby'), rel('bound', 8), { t: 'npcStat', target: 'bound', key: 'fitness', delta: 10 }], 'positive'),
+      pick('Foreslå noe billigere', '{target} ble skuffet, men begynte på fotball i stedet.', [rel('bound', -3)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_child_moves_out', category: 'family', title: 'Tomt rede', text: '{target} flytter hjemmefra.', minAge: 35, maxAge: 75, weight: 5, tone: 'relationship', icon: 'home', target: { kinds: ['child'], minAge: 18, maxAge: 23 }, cooldown: 2,
+    choices: [
+      pick('Hjelpe med flyttingen og depositum', '{target} ble rørt over støtten.', [money(-25_000, 'Hjelp til barn'), rel('bound', 10)], 'positive'),
+      pick('Gjøre om rommet til treningsrom', 'Endelig plass!', [happy(2), rel('bound', -3), fit(2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_child_asks_money', category: 'family', title: 'Pengebekymring', text: '{target} spør om å låne {amount} for å kjøpe sin første bolig.', minAge: 40, maxAge: 85, weight: 4, tone: 'financial', icon: 'hand-coins', target: { kinds: ['child'], minAge: 22 }, cooldown: 6,
+    vars: { amount: { t: 'range', min: 100_000, max: 400_000, step: 10_000 } },
+    choices: [
+      pick('Gi pengene som forskudd på arv', '{target} kunne kjøpe leilighet. Takknemligheten var stor.', [pay('amount', 'Forskudd på arv'), rel('bound', 15), { t: 'npcWealth', target: 'bound', amount: 200_000 }], 'positive', { cost: 'amount' }),
+      pick('Låne ut med avtale', 'Dere skrev en ryddig låneavtale.', [{ t: 'lend', target: 'bound', v: 'amount', mult: 1 }, rel('bound', 6)], 'neutral', { cost: 'amount' }),
+      pick('Si nei', '{target} må klare seg selv.', [rel('bound', -8)], 'negative'),
+    ] }),
+  ev({ id: 'ad_aging_parent_care', category: 'family', title: 'Omsorg for foreldre', text: '{target} klarer seg ikke lenger alene hjemme.', minAge: 35, maxAge: 75, weight: 4, tone: 'neutral', icon: 'heart-handshake', target: { kinds: ['mother', 'father'], minAge: 72 }, maxOccurrences: 1,
+    choices: [
+      pick('Ta {targetHim} inn i hjemmet ditt', 'Det ble krevende, men verdifulle år sammen.', [rel('bound', 15), stress(10), happy(2), money(-30_000, 'Omsorgsutgifter')], 'positive'),
+      pick('Søke sykehjemsplass', '{target} fikk god pleie. Du besøker hver uke.', [rel('bound', -4), stress(3)], 'neutral'),
+      pick('Overlate det til søsknene', 'Søsknene dine ble sure.', [rel('sibling', -12), rel('bound', -8)], 'negative', { cond: [C.rel('sibling')] }),
+    ] }),
+  ev({ id: 'ad_house_problem', category: 'money', title: 'Vannlekkasje', text: 'Et rør har sprukket, og kjelleren står under vann.', minAge: 20, maxAge: 100, weight: 4, tone: 'negative', icon: 'droplets', conditions: [C.homeowner()], cooldown: 6,
+    vars: { amount: { t: 'range', min: 30_000, max: 150_000, step: 5_000 } },
+    choices: [
+      pick('Ringe forsikringen', 'Forsikringen dekket det meste. Egenandel: 10 000 kr.', [money(-10_000, 'Egenandel forsikring'), stress(4)], 'neutral'),
+      pick('Fikse det selv', 'Du sparte penger, men det tok hele sommeren.', [money(-15_000, 'Materialer'), stress(6), fit(2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_renovation', category: 'money', title: 'Oppussingslyst', text: 'Kjøkkenet er utdatert. Et nytt koster {amount}.', minAge: 25, maxAge: 80, weight: 3, tone: 'financial', icon: 'hammer', conditions: [C.homeowner()], cooldown: 8,
+    vars: { amount: { t: 'range', min: 150_000, max: 350_000, step: 10_000 } },
+    choices: [
+      pick('Pusse opp', 'Det nye kjøkkenet er fantastisk, og boligen steg i verdi.', [pay('amount', 'Oppussing'), happy(5), flag('renovated')], 'positive', { cost: 'amount' }),
+      pick('Vente noen år', 'Det gamle kjøkkenet fungerer fortsatt.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_neighbor_dispute', category: 'social', title: 'Nabokrangel', text: 'Naboen vil felle et tre som skygger for deres hage – men det står på din tomt.', minAge: 25, maxAge: 90, weight: 3, tone: 'negative', icon: 'tree-deciduous', conditions: [C.homeowner()], maxOccurrences: 1,
+    choices: [
+      pick('Gå med på det', 'Naboen ble glad, og dere grilla sammen i sommer.', [rep(2), { t: 'newRel', kind: 'friend' }], 'positive'),
+      pick('Nekte', 'Det ble en kald krig over hekken.', [{ t: 'newRel', kind: 'enemy' }, stress(3)], 'negative'),
+      pick('Foreslå å dele kostnaden', 'Et kompromiss alle kunne leve med.', [money(-5_000, 'Trefelling'), rep(1)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_stock_tip', category: 'money', title: 'Aksjetips', text: 'En bekjent har et «sikkert» aksjetips og vil at du skal kjøpe for {amount}.', minAge: 25, maxAge: 80, weight: 3, tone: 'financial', icon: 'line-chart', conditions: [C.money(30_000)], cooldown: 6,
+    vars: { amount: { t: 'range', min: 30_000, max: 150_000, step: 5_000 } },
+    choices: [
+      choice('Kjøpe', [good('Aksjen doblet seg!', [gain('amount', 'Aksjegevinst'), happy(4)], { w: 1 }), bad('Selskapet gikk konkurs.', [pay('amount', 'Aksjetap'), happy(-4)], { w: 2 }), out('Den sto stille. Du solgte uten tap.', [], { w: 1 })], { cost: 'amount' }),
+      pick('Takke nei', 'Det er ikke noe som heter et sikkert tips.', [disc(1)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_recession_hit', category: 'world', title: 'Finanskrise', text: 'Nyhetene snakker om krise. Folk mister jobben og børsen stuper.', minAge: 18, maxAge: 100, weight: 4, tone: 'negative', icon: 'trending-down', conditions: [C.economy('recession')], cooldown: 6,
+    choices: [
+      pick('Kutte i utgiftene', 'Du strammet inn og sov bedre om natta.', [disc(2), stress(2)], 'neutral'),
+      pick('Kjøpe aksjer på salg', 'Du tok en risiko i markedet. Tiden vil vise om det var smart.', [flag('boughtTheDip'), stress(3)], 'neutral'),
+      pick('Panikkselge alt', 'Du solgte alt i bunnen. Huff.', [stress(6), happy(-3)], 'negative'),
+    ] }),
+  ev({ id: 'ad_boom_raise', category: 'world', title: 'Gode tider', text: 'Økonomien går så det suser. Alle snakker om nye muligheter.', minAge: 18, maxAge: 100, weight: 3, tone: 'positive', icon: 'trending-up', conditions: [C.economy('boom')], cooldown: 6,
+    outcomes: [good('Optimismen smitter. Du føler deg lettere til sinns.', [happy(3), stress(-2)])] }),
+  ev({ id: 'ad_health_warning', category: 'health', title: 'Advarsel fra legen', text: 'Legen sier at livsstilen din er en tikkende bombe.', minAge: 35, maxAge: 70, weight: 4, tone: 'negative', icon: 'heart-pulse', conditions: [C.stat('fitness', 0, 35)], cooldown: 5,
+    choices: [
+      pick('Legge om livsstilen', 'Du begynte å gå tur hver dag og spise sunnere.', [fit(6), health(5), disc(3), happy(1)], 'positive'),
+      pick('Ignorere rådet', 'Det går sikkert bra.', [delayed(4, 'Livsstilen tok igjen deg. Legen fant tegn til hjertesykdom.', 'negative', [{ t: 'addCondition', id: 'heart_disease', severity: 45 }])], 'negative'),
+    ] }),
+  ev({ id: 'ad_cancer_screening', category: 'health', title: 'Screening', text: 'Du er invitert til gratis kreftscreening.', minAge: 45, maxAge: 74, weight: 4, tone: 'neutral', icon: 'scan', maxOccurrences: 2, cooldown: 10,
+    choices: [
+      choice('Gå til undersøkelse', [good('Alt var normalt. Puh!', [stress(-3)], { w: 8 }), out('De fant noe tidlig og fjernet det. Du er frisk.', [health(-3), { t: 'flag', key: 'survivedSerious' }], { w: 1 })]),
+      pick('Droppe det', 'Ingen nyheter er gode nyheter … håper du.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_marriage_rut', category: 'love', title: 'Hverdagsgrå', text: 'Du og {target} har blitt mer romkamerater enn kjærester.', minAge: 30, maxAge: 75, weight: 5, tone: 'relationship', icon: 'heart', target: { kinds: ['spouse'], maxStrength: 70 }, cooldown: 5,
+    choices: [
+      pick('Bestille en romantisk weekend', 'Dere fant tilbake til hverandre i Paris.', [money(-20_000, 'Weekendtur'), rel('bound', 15), { t: 'rel', target: 'bound', attraction: 15 }, happy(4)], 'positive'),
+      pick('Foreslå parterapi', 'Det var tøft, men dere lærte å snakke sammen igjen.', [money(-12_000, 'Parterapi'), rel('bound', 10, 10)], 'positive'),
+      pick('La det skure', 'Avstanden mellom dere ble større.', [rel('bound', -10)], 'negative'),
+    ] }),
+  ev({ id: 'ad_divorce_request', category: 'love', title: 'Skilsmisse?', text: '{target} sier at {targetHe} ikke lenger er lykkelig og vil skilles.', minAge: 25, maxAge: 85, weight: 4, tone: 'negative', icon: 'heart-crack', target: { kinds: ['spouse'], maxStrength: 30 }, cooldown: 3,
+    choices: [
+      pick('Godta skilsmissen', 'Det var trist, men kanskje riktig.', [{ t: 'divorce' }], 'negative'),
+      choice('Kjempe for ekteskapet', [good('Dere bestemte dere for å prøve igjen.', [rel('bound', 25), stress(4)], { w: 1 }), bad('Det hjalp ikke. Skilsmissen ble bitter.', [{ t: 'divorce' }, stress(6), rep(-2)], { w: 1 })]),
+    ] }),
+  ev({ id: 'ad_second_child', category: 'family', title: 'Et barn til?', text: '{target} lurer på om dere skal få et barn til.', minAge: 25, maxAge: 44, weight: 4, tone: 'relationship', icon: 'baby', target: { kinds: ['spouse', 'partner'] }, conditions: [C.children(1, 3)], cooldown: 3,
+    choices: [
+      choice('Ja!', [good('Familien vokste igjen!', [{ t: 'baby' }, rel('bound', 6)], { w: 2 }), out('Det skjedde ikke denne gangen, men dere har det fint.', [stress(2)], { w: 1 })]),
+      pick('Nei, vi er fornøyde', 'Dere er enige om at familien er komplett.', [rel('bound', 2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_want_kids', category: 'family', title: 'Barnelyst', text: '{target} drømmer om å få barn med deg.', minAge: 24, maxAge: 42, weight: 5, tone: 'relationship', icon: 'baby', target: { kinds: ['spouse', 'partner'], minStrength: 55 }, conditions: [C.children(0, 0)], cooldown: 3, maxOccurrences: 2,
+    choices: [
+      choice('Prøve å få barn', [good('En liten ny verdensborger er på vei – og blir født i år!', [{ t: 'baby' }, rel('bound', 8)], { w: 2 }), out('Det tar tid. Dere fortsetter å prøve.', [stress(3)], { w: 1 })]),
+      pick('Vente noen år', '{target} ble skuffet.', [rel('bound', -6)], 'neutral'),
+      pick('Si at du ikke vil ha barn', 'Det ble en vanskelig samtale.', [rel('bound', -15)], 'negative'),
+    ] }),
+  ev({ id: 'ad_fertility', category: 'health', title: 'Barnløshet', text: 'Dere har prøvd lenge uten å lykkes.', minAge: 28, maxAge: 44, weight: 3, tone: 'negative', icon: 'heart', conditions: [C.rel(['partner', 'spouse']), C.children(0, 0), C.seen('ad_want_kids')], maxOccurrences: 1,
+    choices: [
+      choice('Prøve IVF', [good('Det lyktes! Dere ble foreldre.', [{ t: 'baby' }, money(-60_000, 'IVF-behandling')], { w: 1 }), bad('Behandlingen lyktes ikke.', [money(-60_000, 'IVF-behandling'), happy(-6)], { w: 1 })], { cost: 60_000 }),
+      pick('Søke om adopsjon', 'Adopsjonsprosessen er startet. Gå til Relasjoner for å følge opp.', [stress(3)], 'neutral'),
+      pick('Akseptere livet uten barn', 'Dere fant mening på andre måter.', [happy(-2), rel('partner', 5)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_charity_ask', category: 'social', title: 'Innsamlingsaksjon', text: 'En organisasjon ber deg om å støtte en innsamling med {amount}.', minAge: 25, maxAge: 100, weight: 3, tone: 'neutral', icon: 'hand-heart', conditions: [C.money(50_000)], cooldown: 4,
+    vars: { amount: { t: 'range', min: 5_000, max: 50_000, step: 1000 } },
+    choices: [
+      pick('Gi', 'Det føltes godt å bidra.', [pay('amount', 'Gave til veldedighet'), rep(3), happy(3)], 'positive', { cost: 'amount' }),
+      pick('Ikke denne gangen', 'Du sa nei takk.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_politics_invite', category: 'career', title: 'Politikk', text: 'Et lokalt parti spør om du vil stå på listen ved kommunevalget.', minAge: 25, maxAge: 70, weight: 3, tone: 'neutral', icon: 'landmark', conditions: [C.stat('reputation', 50)], maxOccurrences: 1,
+    mods: [mod(C.flag('politicsInterest'), 3)],
+    choices: [
+      choice('Si ja', [good('Du ble valgt inn i kommunestyret! Nå kan du søke politiske verv.', [rep(6), flag('politicsInterest'), flag('electedLocal'), stress(4)], { bias: [bias('reputation', 0.8)] }), out('Du fikk ikke nok stemmer denne gang, men ble lagt merke til.', [rep(2), flag('politicsInterest')])]),
+      pick('Takke nei', 'Politikk er ikke for deg.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_scandal', category: 'career', title: 'Skandale', text: 'En avis har gravd frem noe pinlig fra fortiden din.', minAge: 25, maxAge: 80, weight: 2, tone: 'negative', icon: 'newspaper', conditions: [C.any(C.record(), C.flag('petty_thief'), C.flag('rebel')), C.stat('reputation', 60)], maxOccurrences: 1,
+    choices: [
+      pick('Beklage offentlig', 'Ærligheten ble verdsatt av mange.', [rep(-4), stress(4)], 'neutral'),
+      pick('Benekte alt', 'Det ble verre da bevisene kom.', [rep(-12), stress(8), perf(-6)], 'negative'),
+    ] }),
+  ev({ id: 'ad_inheritance_aunt', category: 'money', title: 'Arv fra tante', text: 'En barnløs tante har gått bort og testamentert deg {amount}.', minAge: 25, maxAge: 75, weight: 1, tone: 'financial', icon: 'landmark', maxOccurrences: 1,
+    vars: { amount: { t: 'range', min: 100_000, max: 900_000, step: 10_000 } },
+    outcomes: [good('Du tenker varmt på tante og alle sommerne på hytta hennes.', [{ t: 'inheritance', v: 'amount' }, happy(2)])] }),
+  ev({ id: 'ad_cabin_inherit_offer', category: 'family', title: 'Familiehytta', text: 'Søsknene dine vil selge familiehytta. Du kan kjøpe dem ut for {amount}.', minAge: 30, maxAge: 75, weight: 2, tone: 'financial', icon: 'tent-tree', conditions: [C.rel('sibling'), C.asset('cabin', false)], maxOccurrences: 1,
+    vars: { amount: { t: 'range', min: 700_000, max: 1_500_000, step: 50_000 } },
+    choices: [
+      pick('Kjøpe dem ut', 'Hytta er din. Barndomsminnene lever videre.', [pay('amount', 'Hyttekjøp'), { t: 'gainAsset', catalogId: 'cabin_mountain' }, happy(6), rel('sibling', 5)], 'positive', { cost: 'amount' }),
+      pick('Selge og dele pengene', 'Du fikk din andel av salget.', [gain('amount', 'Andel hyttesalg'), happy(-2)], 'financial'),
+    ] }),
+  ev({ id: 'ad_identity_theft', category: 'crime', title: 'ID-tyveri', text: 'Noen har tatt opp lån i ditt navn.', minAge: 20, maxAge: 90, weight: 1.5, tone: 'negative', icon: 'shield-alert', maxOccurrences: 1,
+    choices: [
+      pick('Politianmelde og kontakte bankene', 'Etter mye papirarbeid ble lånene slettet.', [stress(8)], 'neutral'),
+      pick('Ignorere brevene', 'Inkassobyråene ga seg ikke.', [{ t: 'debt', kind: 'consumer', amount: 60_000, label: 'Svindelgjeld' }, stress(10)], 'negative'),
+    ] }),
+  ev({ id: 'ad_fraud_temptation', category: 'crime', title: 'Kreativ regnskapsføring', text: 'Du kan flytte penger fra firmaets konto uten at noen merker det med det første.', minAge: 25, maxAge: 66, weight: 1.5, tone: 'neutral', icon: 'file-warning', conditions: [C.employed(), C.occ(['finance', 'public', 'law'])], maxOccurrences: 1,
+    choices: [
+      choice('Gjøre det', [out('Du tok {amount}. Ingen merket noe … ennå.', [gain('amount', 'Underslag'), later('ad_embezzlement_found', 3)], { w: 1 })]),
+      pick('La være', 'Du sover godt om natta.', [disc(2)], 'positive'),
+    ], vars: { amount: { t: 'range', min: 100_000, max: 500_000, step: 10_000 } } }),
+  ev({ id: 'ad_embezzlement_found', category: 'crime', title: 'Revisjon', text: 'Revisorene har funnet uregelmessigheter i regnskapet.', minAge: 25, maxAge: 80, weight: 0, scheduledOnly: true, tone: 'negative', icon: 'search',
+    outcomes: [bad('Sporene leder til deg.', [{ t: 'loseJob', reason: 'fired' }, { t: 'crime', crime: 'embezzlement', severity: 4 }], { w: 3 }), out('Revisorene fant ingenting konkret. Du slapp unna – denne gang.', [stress(8)], { w: 1 })] }),
+  ev({ id: 'ad_business_idea', category: 'career', title: 'Gründerdrøm', text: 'Du har en forretningsidé som ikke slipper taket.', minAge: 25, maxAge: 60, weight: 3, tone: 'neutral', icon: 'rocket', conditions: [C.money(150_000)], maxOccurrences: 1,
+    choices: [
+      pick('Satse!', 'Gå til Økonomi → Bedrift for å starte opp. Lykke til!', [flag('founderDream'), happy(2)], 'neutral'),
+      pick('Beholde tryggheten', 'Idéen får vente.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_reunion', category: 'social', title: 'Klassejubileum', text: '25-årsjubileum for klassen din!', minAge: 40, maxAge: 45, weight: 6, tone: 'neutral', icon: 'users', maxOccurrences: 1,
+    choices: [
+      pick('Gå og vise deg fram', 'Alle ville vite hva du jobber med. Du traff igjen {newPerson}.', [{ t: 'newRel', kind: 'friend' }, rep(2), happy(3)], 'positive'),
+      pick('Holde deg hjemme', 'Du så bildene på Facebook. Alle var gamle.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_ex_spouse_contact', category: 'love', title: 'Eksen og barna', text: '{target} vil diskutere barnas fremtid med deg.', minAge: 30, maxAge: 70, weight: 3, tone: 'relationship', icon: 'users', target: { kinds: ['ex'] }, conditions: [C.children(1)], cooldown: 5,
+    choices: [
+      pick('Samarbeide godt', 'Barna merket at foreldrene var på lag.', [rel('bound', 10), happy(2)], 'positive'),
+      pick('Krangle om alt', 'Det ble mange vonde samtaler.', [rel('bound', -10), stress(5), rel('child', -4)], 'negative'),
+    ] }),
+  ev({ id: 'ad_car_accident', category: 'health', title: 'Bilulykke', text: 'En bil kjørte på deg i et kryss.', minAge: 18, maxAge: 90, weight: 1.2, tone: 'negative', icon: 'car', maxOccurrences: 1,
+    outcomes: [bad('Du slapp med skrekken og en bulk i bilen.', [stress(5), money(-6_000, 'Egenandel')], { w: 3 }), bad('Du ble alvorlig skadet og lå på sykehus i ukesvis.', [cond('injury', 70), health(-20), happy(-6)], { w: 1 })] }),
+  ev({ id: 'ad_friend_illness', category: 'social', title: 'Syk venn', text: '{target} har fått en alvorlig diagnose.', minAge: 30, maxAge: 100, weight: 3, tone: 'negative', icon: 'hospital', target: { kinds: ['friend', 'bestFriend'], minAge: 30 }, cooldown: 6,
+    choices: [
+      pick('Stille opp', 'Du var der for {targetHim} gjennom alt. Vennskapet ble dypere.', [rel('bound', 15), stress(4), { t: 'npcStat', target: 'bound', key: 'happiness', delta: 15 }], 'positive'),
+      pick('Trekke deg unna', 'Det var for vondt å se på.', [rel('bound', -10), happy(-2)], 'negative'),
+    ] }),
+  ev({ id: 'ad_sabbatical', category: 'career', title: 'Permisjon', text: 'Du kan ta et års ulønnet permisjon fra jobben.', minAge: 30, maxAge: 60, weight: 2, tone: 'neutral', icon: 'tree-palm', conditions: [C.employed(), C.money(200_000)], maxOccurrences: 1,
+    choices: [
+      pick('Ta permisjon og reise', 'Et år med seiling, fjell og frihet.', [{ t: 'salaryPct', pct: -0.8, fallback: 0, label: 'Tapt lønn' }, happy(10), stress(-15), { t: 'count', key: 'trips' }], 'positive'),
+      pick('Fortsette å jobbe', 'Kanskje senere.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_job_burnout_choice', category: 'career', title: 'Overtid', text: 'Prosjektet er på overtid, og sjefen forventer at alle jobber helg.', minAge: 20, maxAge: 66, weight: 4, tone: 'neutral', icon: 'clock', conditions: [C.employed()], cooldown: 3,
+    choices: [
+      pick('Jobbe helg', 'Prosjektet ble levert. Sjefen la merke til innsatsen.', [perf(8), stress(6), rel('partner', -4)], 'neutral'),
+      pick('Si nei', 'Du beholdt helgen, men sjefen ble skuffet.', [perf(-4), happy(2), stress(-2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_sibling_wedding', category: 'family', title: 'Søskens bryllup', text: '{target} gifter seg og vil at du skal holde tale.', minAge: 18, maxAge: 70, weight: 3, tone: 'relationship', icon: 'mic', target: { kinds: ['sibling'], minAge: 22 }, maxOccurrences: 1,
+    choices: [
+      choice('Holde en morsom tale', [good('Hele salen lo og gråt. Talen var kveldens høydepunkt.', [rel('bound', 12), rep(3)], { bias: [bias('reputation', 0.4), bias('intelligence', 0.3)] }), bad('Vitsene falt flatt, og en av dem var upassende.', [rel('bound', -6), rep(-2)])]),
+      pick('Holde det kort og varmt', 'Enkelt og rørende.', [rel('bound', 6)], 'positive'),
+    ] }),
+  ev({ id: 'ad_investment_property', category: 'money', title: 'Utleiemulighet', text: 'Megleren tipser deg om en billig leilighet som egner seg for utleie.', minAge: 28, maxAge: 70, weight: 2, tone: 'financial', icon: 'building', conditions: [C.homeowner(), C.money(400_000)], cooldown: 8,
+    choices: [
+      pick('Se nærmere på den', 'Gå til Økonomi → Eiendom → Utleieleilighet for å kjøpe.', [flag('lookingForRental')], 'neutral'),
+      pick('Ikke interessert', 'Utleie er mye jobb.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_dental_bill', category: 'health', title: 'Tannlegeregning', text: 'Tannlegen sier du trenger en rotfylling og en krone.', minAge: 25, maxAge: 100, weight: 4, tone: 'financial', icon: 'smile', cooldown: 8,
+    vars: { amount: { t: 'range', min: 8_000, max: 25_000, step: 500 } },
+    choices: [
+      pick('Betale og fikse', 'Det gjorde vondt i både munnen og lommeboka.', [pay('amount', 'Tannlege'), health(1)], 'neutral'),
+      pick('Utsette det', 'Det verket. Til slutt måtte tanna trekkes.', [health(-3), happy(-2)], 'negative'),
+    ] }),
+  ev({ id: 'ad_weight_gain', category: 'health', title: 'Kiloene kommer', text: 'Du har gått opp noen kilo, og buksene strammer.', minAge: 30, maxAge: 65, weight: 4, tone: 'neutral', icon: 'scale', conditions: [C.stat('fitness', 0, 50)], cooldown: 6,
+    choices: [
+      pick('Melde deg på treningssenter', 'Det tok tid, men du kom deg i form igjen.', [fit(6), money(-6_000, 'Treningsavgift'), health(2)], 'positive'),
+      pick('Kjøpe større bukser', 'Komfort først.', [happy(1), fit(-2)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_parent_inheritance_dispute', category: 'family', title: 'Arvestrid', text: 'Etter at {target} døde, krangler søsknene om arven.', minAge: 30, maxAge: 90, weight: 3, tone: 'negative', icon: 'scale', target: { kinds: ['sibling'] }, conditions: [C.any(C.seen('ad_aging_parent_care'), C.rel(['mother', 'father'], 0, 0))], maxOccurrences: 1,
+    choices: [
+      pick('Gi etter for fredens skyld', 'Du fikk mindre, men beholdt søsknene.', [rel('bound', 8), money(-50_000, 'Arveoppgjør')], 'neutral'),
+      pick('Kreve din rettmessige del', 'Du fikk det du hadde krav på – men mistet kontakten med {target}.', [money(80_000, 'Arveoppgjør'), { t: 'endRel', target: 'bound', to: 'estranged' }], 'negative'),
+    ] }),
+  ev({ id: 'ad_child_graduation', category: 'family', title: 'Stolt forelder', text: '{target} er ferdig med utdanningen sin!', minAge: 40, maxAge: 85, weight: 4, tone: 'milestone', icon: 'graduation-cap', target: { kinds: ['child'], minAge: 21, maxAge: 28 }, cooldown: 2,
+    choices: [
+      pick('Holde fest', 'Du var den stolteste forelderen i salen.', [money(-15_000, 'Eksamensfest'), rel('bound', 10), happy(5)], 'positive'),
+      pick('Gi en pengegave', '{target} fikk en god start.', [money(-30_000, 'Gave til barn'), rel('bound', 8), { t: 'npcWealth', target: 'bound', amount: 30_000 }], 'positive'),
+    ] }),
+  ev({ id: 'ad_union_strike', category: 'career', title: 'Streik', text: 'Fagforeningen har tatt ut alle i streik for høyere lønn.', minAge: 20, maxAge: 66, weight: 2, tone: 'neutral', icon: 'megaphone', conditions: [C.employed(), C.occ(['health', 'education', 'public', 'industry', 'transport'])], cooldown: 8,
+    choices: [
+      choice('Stå på streikevakt', [good('Streiken lyktes. Alle fikk 5 % mer i lønn!', [{ t: 'salaryPct', pct: 0.05, fallback: 0, label: 'Lønnsoppgjør' }, rep(2)], { w: 2 }), out('Regjeringen innførte tvungen lønnsnemnd. Lite å hente.', [stress(3)], { w: 1 })]),
+      pick('Jobbe som streikebryter', 'Kollegaene dine glemmer det aldri.', [rep(-8), rel('coworker', -20)], 'negative'),
+    ] }),
+  ev({ id: 'ad_jury_duty', category: 'social', title: 'Meddommer', text: 'Du er trukket ut som meddommer i tingretten.', minAge: 21, maxAge: 70, weight: 2, tone: 'neutral', icon: 'scale', maxOccurrences: 1, conditions: [C.record(false)],
+    choices: [
+      pick('Ta oppgaven på alvor', 'En lærerik og tankevekkende uke i retten.', [smart(2), rep(2)], 'positive'),
+      pick('Søke fritak', 'Du slapp, men følte deg litt skyldig.', [], 'neutral'),
+    ] }),
+  ev({ id: 'ad_affair_partner', category: 'love', title: 'Mistanke', text: '{target} kommer sent hjem og er hemmelighetsfull med telefonen.', minAge: 25, maxAge: 75, weight: 2, tone: 'negative', icon: 'eye', target: { kinds: ['spouse', 'partner'] }, cooldown: 8,
+    choices: [
+      choice('Konfrontere {targetHim}', [good('Det var en overraskelsesfest for deg! Du følte deg dum, men glad.', [rel('bound', 5), happy(3)], { w: 2 }), bad('Mistanken var riktig. {target} har vært utro.', [rel('bound', -40, -50), happy(-10), stress(10)], { w: 1 })]),
+      pick('Snoke i telefonen', '{target} oppdaget det og følte seg krenket.', [rel('bound', -12, -10)], 'negative'),
+      pick('Stole på {targetHim}', 'Tillit er grunnmuren.', [rel('bound', 3)], 'neutral'),
+    ] }),
+  ev({ id: 'ad_hobby_success', category: 'random', title: 'Hobbyen lønner seg', text: 'Det du har holdt på med på fritiden vekker oppmerksomhet.', minAge: 25, maxAge: 80, weight: 2, tone: 'positive', icon: 'palette', conditions: [C.any(C.flag('musical'), C.flag('artsy'), C.flag('author'))], maxOccurrences: 1,
+    choices: [
+      pick('Selge arbeidene dine', 'Du tjente {amount} på det du elsker.', [gain('amount', 'Kunstsalg'), rep(4), happy(5)], 'positive'),
+      pick('Holde det privat', 'Noen ting er bare for deg.', [happy(2)], 'neutral'),
+    ], vars: { amount: { t: 'range', min: 20_000, max: 200_000, step: 5_000 } } }),
+  ev({ id: 'ad_promotion_competition', category: 'career', title: 'Kampen om sjefsstolen', text: 'Du og {target} konkurrerer om samme forfremmelse.', minAge: 25, maxAge: 62, weight: 3, tone: 'neutral', icon: 'swords', target: { kinds: ['coworker'] }, conditions: [C.employed()], cooldown: 5,
+    choices: [
+      choice('Jobbe hardere enn noensinne', [good('Du fikk jobben!', [perf(15), stress(6), rel('bound', -8)], { bias: [bias('discipline', 0.5), bias('intelligence', 0.3)] }), bad('{target} fikk den. Du var bitter.', [happy(-4), rel('bound', -10), stress(5)])]),
+      pick('Sabotere {targetHim}', 'Det ble oppdaget. Rykte ditt fikk en alvorlig smell.', [rep(-10), perf(-10), { t: 'promoteRel', target: 'bound', kind: 'enemy' }], 'negative'),
+      pick('Gi {targetHim} en fair kamp', 'Uansett utfall respekterer dere hverandre.', [rel('bound', 8), perf(4)], 'positive'),
+    ] }),
+];
+
