@@ -35,6 +35,14 @@ birth to death and across generations.
 - `SIM_LIVES=300 npm run sim` ✅ (no invalid states; see GAME_BALANCE.md)
 - `npm run build` ✅
 - Manual play-through in headless Chromium at iPhone size (birth → 40+ years, all tabs) ✅
+- Import of a simulated finished life → death screen, obituary, family tree →
+  continue as heir (generation 2), in dark mode, no console errors ✅
+
+## Fixes from the polish pass
+- Base CSS moved into `@layer base` so Tailwind utilities are not overridden.
+- Adults living at home contribute to living costs only from their own income
+  (previously an unemployed 22-year-old at home could drift into large consumer debt).
+- Event library validator caught an undeclared variable on the trial event.
 
 ## Known limitations
 - Single JS bundle (~860 kB, ~270 kB gzip); content could be code-split.
