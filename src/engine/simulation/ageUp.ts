@@ -1,6 +1,7 @@
 import type { GameState } from '@/types/game';
 import { beginSim, changeStat, endSim, lifeStage, log, player, playerAge, relsOf, type Sim } from './helpers';
 import { advanceEconomy } from '../economy/market';
+import { historicalPhase } from '@/data/eras';
 import { processFinances } from '../economy/finance';
 import { processEducation } from '../education/education';
 import { processCareer } from '../careers/careers';
@@ -43,7 +44,7 @@ export function ageUp(state: GameState): GameState {
 
   // 4/5. NPCs age implicitly via birthYear; process scheduled consequences inside event step.
   // 6. World economy
-  s.economy = advanceEconomy(sim.rng, s.economy);
+  s.economy = advanceEconomy(sim.rng, s.economy, historicalPhase(s.year));
   // 7. Income and expenses
   processFinances(sim);
   // 8. Education & career

@@ -3,6 +3,7 @@ import { useGame } from '@/store/gameStore';
 import { randomLifeOptions, type NewLifeOptions } from '@/engine/simulation/createGame';
 import { randomSeed } from '@/engine/probability/rng';
 import { getCountry } from '@/data/countries';
+import { ERAS } from '@/data/eras';
 import { TRAITS } from '@/data/traits';
 import { SCENARIOS } from '@/engine/achievements/definitions';
 import { Avatar } from '@/components/Avatar';
@@ -29,10 +30,13 @@ export function CreateScreen() {
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const country = getCountry('no');
   const set = (patch: Partial<NewLifeOptions>) => setOpts((o) => ({ ...o, ...patch }));
-  const reroll = () => setOpts(randomLifeOptions());
+  const reroll = () => setOpts((o) => {
+    const next = randomLifeOptions(undefined, o.startYear);
+    return next;
+  });
   const rerollName = (part: 'first' | 'last') => {
     const rng = createRng(randomSeed());
-    if (part === 'first') set({ firstName: randomFirstName(rng, opts.gender) });
+    if (part === 'first') set({ firstName: randomFirstName(rng, opts.gender, opts.startYear) });
     else set({ lastName: randomLastName(rng) });
   };
   const targetSlot = useMemo(() => slots.find((s) => s.empty)?.slot ?? lastSlot, [slots, lastSlot]);
@@ -112,10 +116,25 @@ export function CreateScreen() {
         </div>
 
         <SectionTitle>{t('startYear')}</SectionTitle>
-        <Card className="flex items-center justify-between !py-3">
-          <span className="font-bold">Nåtid</span>
-          <span className="tabular font-extrabold text-muted">{opts.startYear}</span>
-        </Card>
+        <div className="grid grid-cols-1 gap-2">
+          {ERAS.map((era) => {
+            const on = opts.startYear === era.startYear;
+            return (
+              <button key={era.id} onClick={() => set({ startYear: era.startYear })} className={`flex items-center gap-3 rounded-2xl p-3 text-left transition ${on ? 'bg-fjord-soft ring-2 ring-fjord' : 'bg-surface shadow-[var(--shadow-card)]'}`}>
+                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${on ? 'bg-fjord text-white dark:text-[#0b1f1a]' : 'bg-surface-2 text-muted'}`}>
+                  <Icon name={era.icon} size={18} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-[14.5px] font-extrabold">{era.name}</span>
+                    <span className="tabular text-[13px] font-black text-muted">{era.startYear}</span>
+                  </div>
+                  <div className="text-[12.5px] leading-snug text-muted">{era.description}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
         <SectionTitle>{t('background')}</SectionTitle>
         <div className="grid grid-cols-1 gap-2">

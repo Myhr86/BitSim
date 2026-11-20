@@ -22,7 +22,7 @@ src/
     legacy/       Death, life summary, obituary, inheritance, continue-as-heir
     probability/  Seeded RNG (mulberry32)
   data/           Content & configuration (events, occupations, education, countries,
-                  names, assets, activities, traits, health, balance)
+                  eras, names, assets, activities, traits, health, balance)
   store/          Zustand store – the only bridge between UI and engine
   services/       IndexedDB, save format/migrations, meta progression, haptics/sound, files
   i18n/           UI strings
@@ -71,6 +71,15 @@ outcomes. Outcomes have weights with condition modifiers and stat biases, and a 
 effects (stats, money, relationships, conditions, crime, schedule follow-up event,
 delayed consequence, milestones …). Text supports `{name}`, `{target}`, `{amount}` etc.
 The validator checks ids, ranges, references and template keys.
+
+## Historical eras
+`src/data/eras` defines playable start years (1900, 1920, 1950, 1970, 1990, 2000, 2026).
+An era only sets the starting price/housing level and how educated the parents' generation
+is. Everything else is driven by the *current calendar year*, because one life spans many
+decades: mortality and child mortality curves, medical treatment efficacy, forced economic
+phases (1930s depression, 1988–92 bank crisis, 2008 …), name fashion, and year-gated
+occupations, programmes, activities, businesses and events. Historical events live in
+`src/data/events/historical.ts` and use `{ t: 'year' }` conditions.
 
 ## Saves
 - `services/db.ts` – tiny IndexedDB wrapper (stores: `saves`, `meta`)

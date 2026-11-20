@@ -25,10 +25,14 @@ Run typecheck, lint, test and build before every commit.
   (`src/engine/events/validateEvents.ts`) runs in the test suite and must stay green.
 - UI strings live in `src/i18n/nb.ts` (Norwegian Bokmål). Event narrative text lives in the
   event data files (one file per life stage).
-- Monetary amounts in data are at start-of-save prices; the engine multiplies by
-  `economy.priceIndex` (or `housingIndex` for property).
+- Monetary amounts in data are at **2026 prices**; the engine multiplies by
+  `economy.priceIndex` (or `housingIndex` for property). Historical eras simply start the
+  save at a lower price level (`src/data/eras`).
+- Anything that depends on technology or institutions must be year-gated: occupations
+  (`ERA_AVAILABILITY`), programmes (`PROGRAM_FROM`), activities (`ACTIVITY_GATES`), events
+  (`ERA_GATES` or a `{ t: 'year' }` condition) and businesses (`availableFrom`).
+- Every decision event needs at least one free, unconditional choice (the validator enforces it).
 - Changing the `GameState` shape requires bumping `SAVE_VERSION` and adding a migration in
   `src/services/migrations.ts` plus a test.
-- Don't expose unfinished features in the UI. Historical eras exist in data as
-  `plannedEras` but are not selectable.
+- Don't expose unfinished features in the UI.
 - Mobile first: 320–480 px wide, large touch targets, no hover-only interactions.

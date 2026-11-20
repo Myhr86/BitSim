@@ -65,16 +65,18 @@ export interface BusinessDef {
   minAge: number;
   stat: 'intelligence' | 'appearance' | 'fitness' | 'discipline';
   description: string;
+  /** First calendar year this kind of business can be started. */
+  availableFrom?: number;
 }
 
 export const BUSINESSES: BusinessDef[] = [
   { id: 'cafe', name: 'Kaffebar', startCost: 650_000, baseMargin: 0.22, volatility: 0.35, minAge: 18, stat: 'discipline', description: 'Kaffe, kanelboller og lange dager.' },
   { id: 'consultancy', name: 'Konsulentselskap', startCost: 250_000, baseMargin: 0.6, volatility: 0.3, minAge: 22, stat: 'intelligence', description: 'Lav startkostnad, krever kompetanse.' },
   { id: 'craft', name: 'Håndverksbedrift', startCost: 500_000, baseMargin: 0.4, volatility: 0.25, minAge: 20, stat: 'discipline', description: 'Oppdrag finnes alltid – om du leverer.' },
-  { id: 'webshop', name: 'Nettbutikk', startCost: 300_000, baseMargin: 0.35, volatility: 0.55, minAge: 18, stat: 'intelligence', description: 'Kan eksplodere – i begge retninger.' },
-  { id: 'gym', name: 'Treningssenter', startCost: 1_800_000, baseMargin: 0.2, volatility: 0.3, minAge: 21, stat: 'fitness', description: 'Kapitalkrevende, men stabile medlemmer.' },
+  { id: 'webshop', name: 'Nettbutikk', startCost: 300_000, baseMargin: 0.35, volatility: 0.55, minAge: 18, stat: 'intelligence', description: 'Kan eksplodere – i begge retninger.', availableFrom: 1998 },
+  { id: 'gym', name: 'Treningssenter', startCost: 1_800_000, baseMargin: 0.2, volatility: 0.3, minAge: 21, stat: 'fitness', description: 'Kapitalkrevende, men stabile medlemmer.', availableFrom: 1970 },
   { id: 'salon', name: 'Skjønnhetssalong', startCost: 450_000, baseMargin: 0.3, volatility: 0.3, minAge: 19, stat: 'appearance', description: 'Lojale kunder er alt.' },
-  { id: 'tech_startup', name: 'Teknologi-startup', startCost: 1_200_000, baseMargin: 0.15, volatility: 0.9, minAge: 20, stat: 'intelligence', description: 'Høy risiko. Enorm oppside.' },
+  { id: 'tech_startup', name: 'Teknologi-startup', startCost: 1_200_000, baseMargin: 0.15, volatility: 0.9, minAge: 20, stat: 'intelligence', description: 'Høy risiko. Enorm oppside.', availableFrom: 1980 },
 ];
 
 export function getBusinessDef(id: string): BusinessDef | undefined {

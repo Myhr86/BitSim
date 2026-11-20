@@ -100,12 +100,69 @@ export const OCCUPATIONS: OccupationDef[] = [
   { id: 'coach', title: 'Trener', category: 'sport', education: 'bachelor', fields: ['education', 'health'], minAge: 22, salary: [450_000, 540_000], stress: 50, prestige: 45, requirements: [{ stat: 'fitness', min: 50 }], ladder: ['Trener', 'Hovedtrener', 'Landslagstrener'], ladderMult: 1.3, retirementAge: R },
   { id: 'personal_trainer', title: 'Personlig trener', category: 'sport', education: 'upperSecondary', minAge: 19, salary: [380_000, 480_000], stress: 35, prestige: 30, requirements: [{ stat: 'fitness', min: 65 }], ladder: ['PT', 'Senior PT', 'Treningssenter-eier'], ladderMult: 1.3, retirementAge: R },
 
+  // ── Historical occupations (see ERA_AVAILABILITY) ──
+  { id: 'telegraphist', title: 'Telegrafist', category: 'public', education: 'lowerSecondary', minAge: 17, salary: [380_000, 430_000], stress: 35, prestige: 35, ladder: ['Telegrafist', 'Telegrafsjef'], ladderMult: 1.2, retirementAge: R },
+  { id: 'typist', title: 'Maskinskriver', category: 'service', education: 'lowerSecondary', minAge: 16, salary: [340_000, 390_000], stress: 30, prestige: 20, ladder: ['Maskinskriver', 'Kontorsjef'], ladderMult: 1.2, retirementAge: R },
+  { id: 'switchboard', title: 'Sentralborddame/-mann', category: 'service', education: 'lowerSecondary', minAge: 16, salary: [330_000, 380_000], stress: 35, prestige: 15, ladder: ['Telefonist', 'Sentralbordleder'], ladderMult: 1.15, retirementAge: R },
+  { id: 'whaler', title: 'Hvalfanger', category: 'industry', education: 'none', minAge: 17, salary: [500_000, 800_000], stress: 70, prestige: 30, requirements: [{ stat: 'fitness', min: 50 }], ladder: ['Matros', 'Skytter', 'Kaptein'], ladderMult: 1.35, retirementAge: 60 },
+  { id: 'lighthouse_keeper', title: 'Fyrvokter', category: 'public', education: 'none', minAge: 20, salary: [330_000, 380_000], stress: 15, prestige: 30, ladder: ['Fyrvokter', 'Fyrmester'], ladderMult: 1.15, retirementAge: R, rarity: 0.6 },
+
   // ── Science ──────────────────────────────────────────────
   { id: 'researcher', title: 'Forsker', category: 'science', education: 'phd', minAge: 27, salary: [640_000, 720_000], stress: 50, prestige: 75, requirements: [{ stat: 'intelligence', min: 70 }], ladder: ['Postdoktor', 'Forsker', 'Forskningsleder'], ladderMult: 1.18, retirementAge: 70 },
   { id: 'lab_tech', title: 'Bioingeniør', category: 'science', education: 'bachelor', fields: ['science', 'health'], minAge: 21, salary: [530_000, 600_000], stress: 40, prestige: 45, ladder: ['Bioingeniør', 'Fagbioingeniør', 'Laboratorieleder'], ladderMult: 1.15, retirementAge: R },
   { id: 'veterinarian', title: 'Veterinær', category: 'science', education: 'master', fields: ['science', 'medicine'], minAge: 24, salary: [640_000, 760_000], stress: 60, prestige: 70, requirements: [{ stat: 'intelligence', min: 60 }], ladder: ['Veterinær', 'Spesialist', 'Klinikkeier'], ladderMult: 1.2, retirementAge: 70 },
   { id: 'geologist', title: 'Geolog', category: 'science', education: 'master', fields: ['science', 'engineering'], minAge: 24, salary: [700_000, 820_000], stress: 45, prestige: 60, ladder: ['Geolog', 'Senior geolog', 'Leteleder'], ladderMult: 1.22, retirementAge: R },
 ];
+
+/** When occupations appear in (or disappear from) the Norwegian job market. */
+const ERA_AVAILABILITY: Record<string, [number, number?]> = {
+  developer: [1960],
+  data_scientist: [2012],
+  game_dev: [1985],
+  it_support: [1978],
+  influencer: [2010],
+  pilot: [1930],
+  flight_attendant: [1946],
+  paramedic: [1970],
+  psychologist: [1950],
+  physio: [1936],
+  lab_tech: [1950],
+  offshore: [1971],
+  real_estate: [1950],
+  hr: [1965],
+  marketing: [1950],
+  investment: [1960],
+  kindergarten: [1950],
+  kindergarten_assistant: [1960],
+  social_worker: [1950],
+  personal_trainer: [1990],
+  coach: [1950],
+  telegraphist: [1900, 1975],
+  typist: [1900, 1990],
+  switchboard: [1900, 1985],
+  whaler: [1900, 1968],
+  lighthouse_keeper: [1900, 2005],
+  paperboy: [1900],
+  lifeguard_pt: [1950],
+  bus_driver: [1925],
+  truck_driver: [1925],
+  mechanic: [1915],
+  electrician: [1905],
+  diplomat: [1906],
+  dentist: [1900],
+  architect: [1900],
+};
+for (const o of OCCUPATIONS) {
+  const a = ERA_AVAILABILITY[o.id];
+  if (a) {
+    o.availableFrom = a[0];
+    o.availableUntil = a[1];
+  }
+}
+
+export function occupationExists(o: OccupationDef, year: number): boolean {
+  return (o.availableFrom === undefined || year >= o.availableFrom) && (o.availableUntil === undefined || year <= o.availableUntil);
+}
 
 const BY_ID: Record<string, OccupationDef> = Object.fromEntries(OCCUPATIONS.map((o) => [o.id, o]));
 

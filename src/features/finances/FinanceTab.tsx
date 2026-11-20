@@ -370,7 +370,7 @@ function BusinessSheet({ open, onClose }: { open: boolean; onClose: () => void }
   return (
     <Sheet open={open} onClose={onClose} title={t('startBusiness')} subtitle="Med lån trenger du 30 % egenkapital" tall>
       <div className="space-y-2">
-        {BUSINESSES.map((b) => {
+        {BUSINESSES.filter((b) => !b.availableFrom || s.year >= b.availableFrom).map((b) => {
           const cost = b.startCost * s.economy.priceIndex;
           return (
             <Card key={b.id} className="!bg-surface-2 !shadow-none">

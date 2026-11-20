@@ -16,6 +16,16 @@ Validate changes with `SIM_LIVES=1000 npm run sim`.
 
 Human players who treat illnesses, exercise and avoid addictions live noticeably longer.
 
+## Historical eras
+Mortality is multiplied by a calendar-year curve (2.7 in 1900 → 1.65 in 1960 → 1.12 in
+2000 → 1.0 today), child mortality by a steeper one (18× in 1900), the health target is
+lowered by up to 12 points for early-1900s living conditions, and treatment success is
+scaled by medical efficacy (0.35 in 1900 → 1.0 from 2005).
+Headless bot, 60 lives per era (mean / median age at death):
+1900 65.6 / 69 · 1920 68.3 / 73 · 1950 67.8 / 69 · 1970 68.1 / 71 · 1990 70.5 / 72 · today ≈ 71 / 76.
+Every era start level for prices (e.g. 0.017 in 1900) means all data money (2026 prices)
+is scaled down; historical recessions/booms override the random business cycle.
+
 ## Mortality
 `q = base · e^(growth·age)` with `base = 0.00003`, `growth = 0.098` (≈ 0.06 % at 30,
 0.4 % at 50, 2.9 % at 70, 7.7 % at 80, 21 % at 90). Multiplied by a health factor

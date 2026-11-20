@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-19_
+_Last updated: 2026-11-20_
 
 ## Status
 All five phases have a working implementation. The game is fully playable offline from
@@ -12,9 +12,9 @@ birth to death and across generations.
 | Design system | ✅ | Tokens (light/dark), Sheet, Button, Card, Segmented, Pill, Row, Bar, Avatar, Icon |
 | Character creation | ✅ | Name, gender, look, city, background (5), traits, attraction, difficulty, scenarios |
 | Aging pipeline | ✅ | Central `ageUp`, blocked by unresolved events, deterministic |
-| Event engine | ✅ | 301 events, follow-ups, delayed consequences, NPC binding, validator |
+| Event engine | ✅ | 386 events (incl. ~37 historical), follow-ups, delayed consequences, NPC binding, validator |
 | Education | ✅ | Full Norwegian path incl. apprenticeships, PhD, loans, scholarships |
-| Careers | ✅ | 78 occupations, listings, interviews, negotiation, promotions, firing, retirement |
+| Careers | ✅ | 83 occupations (year-gated), listings, interviews, negotiation, promotions, firing, retirement |
 | Relationships | ✅ | 14 relation types, 19 interactions, marriage/divorce/children/adoption |
 | NPC lives | ✅ | Aging, death + inheritance, marriages, grandchildren, retirement |
 | Finances | ✅ | Taxes, living costs, rent, loans, mortgages, investments, pension, bankruptcy |
@@ -26,7 +26,8 @@ birth to death and across generations.
 | Achievements | ✅ | 44 persistent achievements, 4 unlockable scenarios |
 | Saves | ✅ | 3 IndexedDB slots, autosave, export/import JSON, versioning, migration, validation |
 | PWA / Capacitor | ✅ | Manifest, service worker, `capacitor.config.json` |
-| Tests | ✅ | 72 tests + mass simulation runner |
+| Historical eras | ✅ | 1900, 1920, 1950, 1970, 1990, 2000, today – year-driven mortality, medicine, economy, names, availability |
+| Tests | ✅ | 80 tests + mass simulation runner (all eras) |
 
 ## Verification (this milestone)
 - `npm run typecheck` ✅
@@ -44,9 +45,19 @@ birth to death and across generations.
   (previously an unemployed 22-year-old at home could drift into large consumer debt).
 - Event library validator caught an undeclared variable on the trial event.
 
+## Content pack 2 (2026-11-20)
+- Playable historical eras with era picker in character creation.
+- 37 historical events (Spanish flu, prohibition, depression, 9 April 1940, resistance /
+  flight / collaboration and the post-war reckoning, liberation, rebuilding, polio, TV,
+  moon landing, oil, EU votes, yuppie era and bank crisis, internet, OL 1994, Y2K, dot-com,
+  2008, smartphones, oil price fall, lockdown) and 48 new everyday events.
+- Year gates for ~45 existing modern events, ~30 activities, programmes and businesses.
+- Validator now requires a free, unconditional choice in every decision event (found
+  and fixed a real progression blocker).
+
 ## Known limitations
 - Single JS bundle (~860 kB, ~270 kB gzip); content could be code-split.
-- Only the present-day era is playable (historical eras are planned, not exposed).
+- Era social norms (labour market, marriage law) and pension history are not modelled yet.
 - Only Norwegian UI text; the i18n layer is ready for more languages.
 - Headless bot does not use doctors, so simulated life expectancy is a lower bound.
 

@@ -28,3 +28,15 @@ export const NO_COMPANIES = [
   'Skogheim Media', 'Vestkyst Energi', 'Tindesoft', 'Elvebakken Helse', 'Midnattsol Reiser', 'Breviken Mekaniske',
   'Isbjørn Retail', 'Furu & Fjell AS', 'Kystlinje Transport', 'Lysglimt Design', 'Saga Forsikring', 'Nordkapp Data',
 ];
+
+/** Traditional names for people born before ~1960. */
+export const NO_OLD_MALE_NAMES = [
+  'Ole', 'Hans', 'Johan', 'Karl', 'Olav', 'Nils', 'Peder', 'Anders', 'Kristian', 'Johannes',
+  'Martin', 'Einar', 'Harald', 'Sverre', 'Thorvald', 'Alf', 'Asbjørn', 'Reidar', 'Kåre', 'Ragnvald',
+  'Sigurd', 'Halvdan', 'Torleif', 'Gudmund', 'Arnfinn', 'Oddvar', 'Kjell', 'Rolf', 'Jens', 'Edvard',
+];
+export const NO_OLD_FEMALE_NAMES = [
+  'Anna', 'Marie', 'Karen', 'Ingeborg', 'Olga', 'Kristine', 'Hilda', 'Signe', 'Gudrun', 'Ragna',
+  'Borghild', 'Astrid', 'Margit', 'Kari', 'Johanne', 'Elisabeth', 'Martha', 'Dagny', 'Solveig', 'Gunvor',
+  'Aslaug', 'Torbjørg', 'Bergljot', 'Ellen', 'Agnes', 'Klara', 'Sigrid', 'Inger', 'Berit', 'Ruth',
+];

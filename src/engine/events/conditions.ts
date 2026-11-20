@@ -79,6 +79,8 @@ export function evalCondition(s: GameState, c: Condition): boolean {
     }
     case 'salary':
       return inRange(s.career.job?.salary ?? 0, scale(s, c.min), scale(s, c.max));
+    case 'year':
+      return inRange(s.year, c.min, c.max);
     case 'any':
       return c.of.some((x) => evalCondition(s, x));
     case 'not':

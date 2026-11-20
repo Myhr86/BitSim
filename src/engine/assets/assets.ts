@@ -225,6 +225,7 @@ export function startBusiness(sim: Sim, businessId: string, useLoan: boolean): P
   const def = getBusinessDef(businessId);
   if (!def) return { ok: false, error: 'unknown' };
   if (playerAge(s) < def.minAge) return { ok: false, error: 'tooYoung' };
+  if (def.availableFrom && s.year < def.availableFrom) return { ok: false, error: 'unknown' };
   if (s.crime.prisonYearsLeft > 0) return { ok: false, error: 'inPrison' };
   if (s.assets.filter((a) => a.kind === 'business').length >= 3) return { ok: false, error: 'tooMany' };
   const cost = Math.round(def.startCost * s.economy.priceIndex);

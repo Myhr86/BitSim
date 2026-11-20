@@ -64,7 +64,8 @@ export const GENERAL_EVENTS: EventDef[] = [
   ev({ id: 'gen_bike_stolen', category: 'crime', title: 'Stjålet sykkel', text: 'Sykkelen din er stjålet fra bakgården.', minAge: 8, maxAge: 90, weight: 3, tone: 'negative', icon: 'bike', cooldown: 6,
     choices: [
       pick('Anmelde det', 'Politiet henla saken, men forsikringen betalte.', [money(-1_000, 'Egenandel'), stress(1)], 'neutral'),
-      pick('Lete på finn.no', 'Du fant den til salgs og fikk den tilbake med politiets hjelp!', [happy(3), smart(1)], 'positive'),
+      pick('Lete på bruktmarkedet på nett', 'Du fant den til salgs og fikk den tilbake med politiets hjelp!', [happy(3), smart(1)], 'positive', { cond: [C.year(2000)] }),
+      pick('Henge opp lapper i nabolaget', 'En nabo hadde sett tyven. Sykkelen kom tilbake!', [happy(3), rep(1)], 'positive', { cond: [C.year(undefined, 1999)] }),
     ] }),
   ev({ id: 'gen_relative_visit_abroad', category: 'family', title: 'Slekt i Amerika', text: 'En fjern slektning fra USA vil besøke deg for å finne røttene sine.', minAge: 20, maxAge: 100, weight: 1.5, tone: 'positive', icon: 'globe', maxOccurrences: 1,
     choices: [

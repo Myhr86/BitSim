@@ -9,12 +9,6 @@ export interface CityDef {
   jobFactor: number;
 }
 
-export interface EraDef {
-  startYear: number;
-  label: string;
-  available: boolean;
-}
-
 /** Data-driven country definition. Adding a country = adding one of these + a name pool. */
 export interface CountryConfig {
   id: string;
@@ -31,6 +25,4 @@ export interface CountryConfig {
   adultAge: number;
   retirementAge: number;
   lifeExpectancy: number;
-  playableEras: EraDef[];
-  plannedEras: EraDef[];
 }

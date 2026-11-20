@@ -92,7 +92,8 @@ export function validateEventLibrary(events: EventDef[]): string[] {
       if (typeof c.requiresMoney === 'string' && !varKeys.includes(c.requiresMoney)) problems.push(`${where} choice ${i}: cost var missing`);
       checkOutcomes(c.outcomes, `choice ${i}`);
     });
-    if (hasChoices && e.choices && e.choices.every((c) => c.conditions && c.conditions.length > 0)) problems.push(`${where} every choice is conditional – player could be stuck`);
+    if (hasChoices && e.choices && !e.choices.some((c) => (!c.conditions || c.conditions.length === 0) && c.requiresMoney === undefined))
+      problems.push(`${where} no free, unconditional choice – a broke player could be stuck`);
   }
   return problems;
 }

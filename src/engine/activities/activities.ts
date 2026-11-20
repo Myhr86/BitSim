@@ -49,8 +49,13 @@ export function visibleCategories(s: GameState): typeof ACTIVITY_CATEGORIES {
   return ACTIVITY_CATEGORIES.filter((c) => (inPrison ? c.id === 'prison' : c.id !== 'prison') && age >= c.minAge);
 }
 
-export function activitiesIn(category: string): ActivityDef[] {
-  return ACTIVITIES.filter((a) => a.category === category);
+/** Activities in a category that exist in the current calendar year. */
+export function activitiesIn(category: string, s?: GameState): ActivityDef[] {
+  return ACTIVITIES.filter((a) => a.category === category && (!s || existsInYear(a, s.year)));
+}
+
+function existsInYear(a: ActivityDef, year: number): boolean {
+  return (a.conditions ?? []).every((c) => c.t !== 'year' || ((c.min === undefined || year >= c.min) && (c.max === undefined || year <= c.max)));
 }
 
 /** Scales stat effects by diminishing returns: each repeat this year is less effective. */

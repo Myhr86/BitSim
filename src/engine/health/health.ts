@@ -3,6 +3,7 @@ import { BALANCE } from '@/data/balance';
 import { ADDICTIONS, CONDITIONS, getAddictionDef, getConditionDef } from '@/data/health';
 import { getTrait } from '@/data/traits';
 import { getOccupation } from '@/data/occupations';
+import { eraHealthPenalty, medicalEfficacy } from '@/data/eras';
 import { clamp } from '@/utils/math';
 import { addTx, changeStat, log, player, playerAge, relsOf, type Sim } from '../simulation/helpers';
 
@@ -50,7 +51,7 @@ export function processHealth(sim: Sim): void {
     delta -= def.yearlyDamage * (c.severity / 100) * (c.treated ? 0.35 : 1);
     if (def.mental) changeStat(p, 'happiness', -c.severity * 0.08 * (c.treated ? 0.4 : 1));
     // Public healthcare: the GP usually starts treatment of chronic conditions.
-    if (def.chronic && !c.treated && rng.chance(0.35)) c.treated = true;
+    if (def.chronic && !c.treated && rng.chance(0.35 * medicalEfficacy(s.year))) c.treated = true;
     const recoverP = def.recoverChance * (c.treated ? 1.6 : 1) * (st.fitness > 60 ? 1.2 : 1);
     if (rng.chance(Math.min(0.95, recoverP))) {
       removeCondition(s, c.id);
@@ -110,6 +111,7 @@ export function healthTarget(s: GameState): number {
   t += (st.fitness - 50) * 0.18;
   t += (p.genetics - 60) * 0.15;
   t -= Math.max(0, st.stress - 50) * 0.15;
+  t -= eraHealthPenalty(s.year);
   if (s.finances.lifestyle === 'frugal' && playerAge(s) >= 18) t -= 2;
   return clamp(t, 5, 100);
 }
@@ -183,7 +185,7 @@ export function treatCondition(sim: Sim, id: string, privateClinic: boolean): Tr
   if (s.finances.cash < cost) return { ok: false, text: 'Du har ikke råd til behandlingen.' };
   s.health.doctorVisitsThisYear += 1;
   addTx(s, -cost, 'health', `Behandling: ${def.name}`);
-  const chance = def.treatChance * (privateClinic ? 1.2 : 1) * (c.treated ? 0.6 : 1);
+  const chance = def.treatChance * (privateClinic ? 1.2 : 1) * (c.treated ? 0.6 : 1) * medicalEfficacy(s.year);
   if (rng.chance(Math.min(0.97, chance))) {
     if (def.chronic) {
       c.treated = true;

@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { simulateLife, type LifeReport } from '@/engine/simulation/headless';
+import { ERAS } from '@/data/eras';
 
 const LIVES = Number(process.env.SIM_LIVES ?? 300);
 const pct = (xs: number[], p: number) => {
@@ -19,7 +20,9 @@ describe(`mass simulation of ${LIVES} lives`, () => {
     for (let i = 0; i < LIVES; i++) {
       const seed = 100_000 + i * 7_919;
       try {
-        const r = simulateLife(seed, { recklessness: i % 5 === 0 ? 0.9 : 0.25 }, i % 10 === 0 ? 2 : 0);
+        // Every third life starts in a historical era.
+        const startYear = i % 3 === 0 ? ERAS[(i / 3) % ERAS.length].startYear : 2026;
+        const r = simulateLife(seed, { recklessness: i % 5 === 0 ? 0.9 : 0.25, startYear }, i % 10 === 0 ? 2 : 0);
         reports.push({ ...r, state: undefined as never });
       } catch (e) {
         crashes.push(`${seed}: ${e instanceof Error ? e.message : String(e)}`);

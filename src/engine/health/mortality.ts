@@ -1,6 +1,7 @@
 import type { GameState } from '@/types/game';
 import { BALANCE } from '@/data/balance';
 import { getConditionDef } from '@/data/health';
+import { eraChildMortality, eraMortality } from '@/data/eras';
 import { player, playerAge } from '../simulation/helpers';
 import type { Rng } from '../probability/rng';
 
@@ -14,8 +15,9 @@ export function playerMortality(s: GameState): number {
   const h = p.stats.health;
   if (h <= 0) return 1;
   let q = BALANCE.health.mortalityBase * Math.exp(BALANCE.health.mortalityGrowth * age);
-  if (age === 0) q += 0.0008;
-  else if (age < 18) q *= 0.5;
+  if (age === 0) q += 0.0008 * eraChildMortality(s.year);
+  else if (age < 18) q *= 0.5 * eraChildMortality(s.year);
+  q *= eraMortality(s.year);
   // Health multiplier: poor health strongly increases risk.
   const healthMult = h >= 70 ? 0.8 : h >= 50 ? 1 : h >= 30 ? 2 : h >= 15 ? 4 : 8;
   q *= healthMult;

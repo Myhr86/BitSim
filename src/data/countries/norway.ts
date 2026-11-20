@@ -34,10 +34,4 @@ export const NORWAY: CountryConfig = {
   adultAge: 18,
   retirementAge: 67,
   lifeExpectancy: 83,
-  playableEras: [{ startYear: 2026, label: 'Nåtid', available: true }],
-  plannedEras: [
-    { startYear: 1900, label: '1900', available: false },
-    { startYear: 1950, label: '1950', available: false },
-    { startYear: 1990, label: '1990', available: false },
-  ],
 };

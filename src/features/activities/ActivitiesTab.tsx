@@ -53,7 +53,7 @@ function CategorySheet({ cat, onClose }: { cat: ActivityCategory | null; onClose
   const act = useGame((x) => x.act);
   const [result, setResult] = useState<{ text: string; tone: string } | null>(null);
   const meta = ACTIVITY_CATEGORIES.find((c) => c.id === cat);
-  const list = cat ? activitiesIn(cat) : [];
+  const list = cat ? activitiesIn(cat, s) : [];
   return (
     <Sheet
       open={!!cat}

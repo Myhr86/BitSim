@@ -171,6 +171,44 @@ export const ACTIVITIES: ActivityDef[] = [
   { id: 'prison_fight', category: 'prison', name: 'Slåss om respekt', description: 'Farlig, men gir status.', minAge: 15, cost: 0, limit: 1, risky: true, conditions: [{ t: 'inPrison', value: true }], outcomes: [ok('Du vant slåsskampen. Ingen tuller med deg nå.', [st('reputation', 3), st('health', -3)], 2), bad('Du tapte og fikk ekstra soning.', [st('health', -10), { t: 'prisonTime', delta: 1 }], 2)] },
 ];
 
+/** Calendar-year windows for activities that need modern technology or institutions. */
+const ACTIVITY_GATES: Record<string, [number, number?]> = {
+  gaming: [1980],
+  dating_app: [2010],
+  phone: [1995],
+  online_course: [2000],
+  netflix: [2008],
+  hack: [1985],
+  plastic_surgery: [1960],
+  botox: [2000],
+  teeth_whitening: [1990],
+  speed_dating: [2000],
+  interrail: [1972],
+  trip_exotic: [1970],
+  trip_europe: [1955],
+  lotto: [1986],
+  scratch: [1990],
+  side_hustle: [2000],
+  yoga: [1970],
+  cinema: [1910],
+  concert: [1900],
+  alpine: [1935],
+  climbing: [1980],
+  marathon: [1970],
+  therapy: [1960],
+  physio: [1936],
+  alt_medicine: [1970],
+  networking: [1960],
+  freelance: [1970],
+  meditate: [1970],
+  blind_date: [1950],
+  smuggle: [1900],
+};
+for (const a of ACTIVITIES) {
+  const gate = ACTIVITY_GATES[a.id];
+  if (gate) a.conditions = [...(a.conditions ?? []), { t: 'year', min: gate[0], max: gate[1] }];
+}
+
 export function getActivity(id: string): ActivityDef | undefined {
   return ACTIVITIES.find((a) => a.id === id);
 }

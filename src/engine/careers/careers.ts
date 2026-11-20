@@ -1,6 +1,6 @@
 import type { GameState, JobState } from '@/types/game';
 import { EDU_RANK } from '@/types/core';
-import { OCCUPATIONS, getOccupation, occupationTitle, type OccupationDef } from '@/data/occupations';
+import { OCCUPATIONS, getOccupation, occupationExists, occupationTitle, type OccupationDef } from '@/data/occupations';
 import { NO_COMPANIES } from '@/data/names/norway';
 import { BALANCE } from '@/data/balance';
 import { getCity } from '@/data/countries';
@@ -19,6 +19,7 @@ export function qualification(s: GameState, occ: OccupationDef): Qualification {
   const missing: string[] = [];
   const p = player(s);
   const age = playerAge(s);
+  if (!occupationExists(occ, s.year)) missing.push(occ.availableFrom && s.year < occ.availableFrom ? 'Yrket finnes ikke ennå' : 'Yrket finnes ikke lenger');
   if (age < occ.minAge) missing.push(`Minst ${occ.minAge} år`);
   if (occ.maxAge !== undefined && age > occ.maxAge) missing.push(`Maks ${occ.maxAge} år`);
   if (EDU_RANK[occ.education] > 0) {
@@ -74,6 +75,7 @@ export function jobListings(s: GameState): OccupationDef[] {
     if (age < Math.max(13, o.minAge - 3)) return false;
     if (o.maxAge !== undefined && age > o.maxAge + 2) return false;
     if (o.partTime && age >= 26) return false;
+    if (!occupationExists(o, s.year)) return false;
     const rarity = o.rarity ?? 1;
     return rng.chance(Math.min(1, rarity + 0.1));
   });

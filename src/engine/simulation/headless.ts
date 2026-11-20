@@ -23,6 +23,8 @@ import { validateState } from './validate';
 export interface PolicyOptions {
   /** 0 = cautious, 1 = reckless (more crime, gambling and risky choices). */
   recklessness: number;
+  /** Start year of the life (historical era). Defaults to the present. */
+  startYear?: number;
 }
 
 export interface LifeReport {
@@ -123,7 +125,7 @@ function playYear(state: GameState, rng: Rng, opts: PolicyOptions): GameState {
 
 export function simulateLife(seed: number, opts: PolicyOptions = { recklessness: 0.3 }, continueGenerations = 0): LifeReport {
   const rng = createRng(seed ^ 0x5bd1e995);
-  let s = createGame({ ...randomLifeOptions(seed), seed });
+  let s = createGame({ ...randomLifeOptions(seed, opts.startYear ?? 2026), seed });
   const problems: string[] = [];
   let years = 0;
   let generationsLeft = continueGenerations;

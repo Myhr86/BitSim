@@ -1,13 +1,14 @@
 import type { Person } from '@/types/game';
 import { BALANCE } from '@/data/balance';
+import { eraChildMortality, eraMortality } from '@/data/eras';
 import { clamp } from '@/utils/math';
 import { addRelationship, addTx, ageOf, changeStat, log, player, relsOf, type Sim } from '../simulation/helpers';
 import { createPerson, inheritGenetics, npcOccupationFor, randomEducationLevel } from './factory';
 
 /** Annual death probability for an NPC (simplified Gompertz curve). */
-export function npcMortality(age: number, health: number): number {
-  const base = BALANCE.health.mortalityBase * Math.exp(BALANCE.health.mortalityGrowth * age);
-  const infant = age === 0 ? 0.002 : 0;
+export function npcMortality(age: number, health: number, year = 2026): number {
+  const base = BALANCE.health.mortalityBase * Math.exp(BALANCE.health.mortalityGrowth * age) * eraMortality(year);
+  const infant = age === 0 ? 0.002 * eraChildMortality(year) : 0;
   const healthMult = health < 30 ? 3 : health < 50 ? 1.6 : 1;
   return Math.min(0.7, base * healthMult + infant);
 }
@@ -37,7 +38,7 @@ export function processNpcLives(sim: Sim): void {
     npc.stats.happiness = clamp(npc.stats.happiness + rng.normal(0, 3));
     // Death
     const r = s.relationships[id];
-    if (rng.chance(npcMortality(age, npc.stats.health))) {
+    if (rng.chance(npcMortality(age, npc.stats.health, s.year))) {
       killNpc(sim, npc, age > 75 ? 'alderdom' : rng.pick(NPC_CAUSES));
       continue;
     }
@@ -48,7 +49,7 @@ export function processNpcLives(sim: Sim): void {
     if (age === 19 && npc.educationLevel === 'none') npc.educationLevel = randomEducationLevel(rng);
     if (age >= 20 && age < 67 && !npc.occupationId && npc.occupationStatus !== 'employed') {
       if (rng.chance(0.6)) {
-        npc.occupationId = npcOccupationFor(rng, npc.educationLevel === 'none' ? 'upperSecondary' : npc.educationLevel, age);
+        npc.occupationId = npcOccupationFor(rng, npc.educationLevel === 'none' ? 'upperSecondary' : npc.educationLevel, age, s.year);
         npc.occupationStatus = npc.occupationId ? 'employed' : 'unemployed';
       }
     }

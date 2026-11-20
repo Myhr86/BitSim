@@ -13,6 +13,8 @@ export interface ProgramDef {
   paid?: { fromYear: number; salary: number };
   minIntelligence?: number;
   description: string;
+  /** First calendar year the programme is offered. */
+  availableFrom?: number;
 }
 
 /** Simplified Norwegian education system. Grades use the 1–6 scale. */
@@ -57,6 +59,25 @@ export const PROGRAMS: ProgramDef[] = [
 
   { id: 'phd', name: 'Doktorgrad (ph.d.)', level: 'phd', field: 'science', years: 3, minAge: 23, kind: 'doctoral', requires: { level: 'master', minGrade: 4.5 }, paid: { fromYear: 0, salary: 532_000 }, minIntelligence: 68, description: 'Forskerutdanning som stipendiat' },
 ];
+
+const PROGRAM_FROM: Record<string, number> = {
+  ba_it: 1975,
+  ma_it: 1985,
+  ma_psychology: 1950,
+  ba_kindergarten: 1950,
+  ba_police: 1920,
+  ba_media: 1965,
+  ba_social: 1950,
+  ba_nursing: 1900,
+  ba_military: 1900,
+  ma_vet: 1935,
+  ma_dentistry: 1910,
+  ma_pharmacy: 1931,
+  ma_arts: 1946,
+  vgs_electrician: 1905,
+  vgs_mechanic: 1915,
+};
+for (const p of PROGRAMS) if (PROGRAM_FROM[p.id]) p.availableFrom = PROGRAM_FROM[p.id];
 
 const BY_ID: Record<string, ProgramDef> = Object.fromEntries(PROGRAMS.map((p) => [p.id, p]));
 

@@ -3,14 +3,15 @@ import { BALANCE } from '@/data/balance';
 import { clamp } from '@/utils/math';
 import type { Rng } from '../probability/rng';
 
-export function initialEconomy(): EconomyState {
+/** Starting economy. Price levels default to 2026 (1.0); historical eras start lower. */
+export function initialEconomy(priceLevel = 1, housingLevel = 1): EconomyState {
   return {
     phase: 'normal',
     yearsInPhase: 2,
     inflation: 0.025,
-    priceIndex: 1,
+    priceIndex: priceLevel,
     interestRate: 0.035,
-    housingIndex: 1,
+    housingIndex: housingLevel,
     stockIndex: 1,
     lastStockReturn: 0,
     lastHousingReturn: 0,
@@ -32,9 +33,9 @@ function nextPhase(rng: Rng, e: EconomyState): EconomyPhase {
 }
 
 /** Advances the macro economy one year. Returns a new object; bounded so it never explodes. */
-export function advanceEconomy(rng: Rng, prev: EconomyState): EconomyState {
+export function advanceEconomy(rng: Rng, prev: EconomyState, forcedPhase?: EconomyPhase): EconomyState {
   const e = { ...prev };
-  const phase = nextPhase(rng, e);
+  const phase = forcedPhase ?? nextPhase(rng, e);
   e.yearsInPhase = phase === e.phase ? e.yearsInPhase + 1 : 0;
   e.phase = phase;
   const [iMin, iMax] = BALANCE.economy.inflation[phase];

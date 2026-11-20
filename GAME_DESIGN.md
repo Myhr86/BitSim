@@ -41,7 +41,7 @@ is unresolved.
   yrkesfag (with paid apprenticeship), bachelor, integrated master (medicine, law,
   psychology…), master, PhD (paid). Grades on the 1–6 scale, effort, failing years,
   scholarships, Lånekassen loans with 40 % grant conversion, dropping out.
-- **Careers:** 78 occupations in 16 categories with education/field/stat/experience
+- **Careers:** 83 occupations in 16 categories with education/field/stat/experience
   requirements, salary ranges, stress, prestige and 1–4 step ladders. Apply (limited per
   year) → interview chance → offer → negotiate/accept/decline. Performance, raises,
   promotions, firing, recession layoffs, unemployment benefits, retirement with pension.
@@ -73,6 +73,14 @@ is unresolved.
   child with inheritance, unlimited generations in one save.
 - **Achievements:** 44 permanent achievements (some hidden) that unlock starting scenarios
   (Heir, Prodigy, Born Star, Dynasty).
+
+## Historical eras
+Start in 1900, 1920, 1950, 1970, 1990, 2000 or today. A life starting in 1920 lives through
+the depression, the German occupation (with real choices: resistance, flight to Sweden,
+collaboration – and the reckoning after liberation), rebuilding, TV, the oil adventure and
+perhaps the internet. Old eras have higher mortality and weaker medicine, period names,
+jobs that later vanish (telegraphist, whaler, lighthouse keeper) and no jobs that don't
+exist yet (programmer, influencer). ~37 historical events plus year-gated modern events.
 
 ## Tone
 Warm, a little wry, distinctly Norwegian (17. mai, dugnad, russetid, hyttetur, Lånekassen,

@@ -1,15 +1,19 @@
 import type { Appearance, EduLevel, Gender, Stats, TraitId } from '@/types/core';
 import type { GameState, Person } from '@/types/game';
-import { NO_FEMALE_NAMES, NO_LAST_NAMES, NO_MALE_NAMES } from '@/data/names/norway';
+import { NO_FEMALE_NAMES, NO_LAST_NAMES, NO_MALE_NAMES, NO_OLD_FEMALE_NAMES, NO_OLD_MALE_NAMES } from '@/data/names/norway';
 import { TRAITS } from '@/data/traits';
-import { OCCUPATIONS } from '@/data/occupations';
+import { OCCUPATIONS, occupationExists } from '@/data/occupations';
 import { EDU_RANK } from '@/types/core';
 import { clamp } from '@/utils/math';
 import type { Rng } from '../probability/rng';
 import { newId } from '../simulation/helpers';
 
-export function randomFirstName(rng: Rng, gender: Gender): string {
-  return rng.pick(gender === 'male' ? NO_MALE_NAMES : NO_FEMALE_NAMES);
+/** First names follow fashion: people born before ~1960 get traditional names. */
+export function randomFirstName(rng: Rng, gender: Gender, birthYear = 2026): string {
+  const oldShare = birthYear < 1940 ? 0.9 : birthYear < 1960 ? 0.6 : birthYear < 1980 ? 0.25 : 0;
+  const old = rng.chance(oldShare);
+  if (gender === 'male') return rng.pick(old ? NO_OLD_MALE_NAMES : NO_MALE_NAMES);
+  return rng.pick(old ? NO_OLD_FEMALE_NAMES : NO_FEMALE_NAMES);
 }
 
 export function randomLastName(rng: Rng): string {
@@ -75,7 +79,7 @@ export function createPerson(s: GameState, rng: Rng, opts: PersonOptions): Perso
   }
   const p: Person = {
     id: newId(s, 'p'),
-    firstName: opts.firstName ?? randomFirstName(rng, gender),
+    firstName: opts.firstName ?? randomFirstName(rng, gender, opts.birthYear),
     lastName: opts.lastName ?? randomLastName(rng),
     gender,
     birthYear: opts.birthYear,
@@ -98,10 +102,11 @@ export function createPerson(s: GameState, rng: Rng, opts: PersonOptions): Perso
 }
 
 /** Pick a plausible occupation for an adult NPC with a given education level. */
-export function npcOccupationFor(rng: Rng, edu: EduLevel, age: number): string | undefined {
+export function npcOccupationFor(rng: Rng, edu: EduLevel, age: number, year: number): string | undefined {
   const fits = OCCUPATIONS.filter(
     (o) =>
       !o.partTime &&
+      occupationExists(o, year) &&
       EDU_RANK[o.education] <= EDU_RANK[edu] &&
       EDU_RANK[o.education] >= EDU_RANK[edu] - 2 &&
       age >= o.minAge &&

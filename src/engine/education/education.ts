@@ -29,6 +29,7 @@ export function programEligibility(s: GameState, prog: ProgramDef): Eligibility 
   const reasons: string[] = [];
   const p = player(s);
   const age = playerAge(s);
+  if (prog.availableFrom && s.year < prog.availableFrom) reasons.push('Studiet finnes ikke ennå');
   if (age < prog.minAge) reasons.push(`Minstealder ${prog.minAge} år`);
   if (prog.kind === 'compulsory') reasons.push('Grunnskolen skjer automatisk');
   if (prog.requires) {

@@ -82,6 +82,8 @@ export const C = {
   not: (c: Condition): Condition => ({ t: 'not', c }),
   any: (...of: Condition[]): Condition => ({ t: 'any', of }),
   prison: (value = true): Condition => ({ t: 'inPrison', value }),
+  year: (min?: number, max?: number): Condition => ({ t: 'year', min, max }),
+  salary: (min?: number, max?: number): Condition => ({ t: 'salary', min, max }),
 };
 
 function relCond(kind: import('@/types/game').RelKind | import('@/types/game').RelKind[], min?: number, max?: number): Condition {

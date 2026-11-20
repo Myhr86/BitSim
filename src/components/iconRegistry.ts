@@ -202,10 +202,16 @@ import {
   X,
   XCircle,
   Zap,
+  Apple,
+  PenTool,
+  Radio,
 } from 'lucide-react';
 
 /** Explicit icon registry so data files can reference icons by kebab-case name while keeping the bundle small. */
 export const ICONS: Record<string, LucideIcon> = {
+  'apple': Apple,
+  'pen-tool': PenTool,
+  'radio': Radio,
   'activity': Activity,
   'alert-circle': AlertCircle,
   'alert-triangle': AlertTriangle,

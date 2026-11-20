@@ -1,6 +1,7 @@
 import type { Effect, RelTarget } from '@/types/events';
 import type { Relationship } from '@/types/game';
 import { getAssetDef } from '@/data/assets';
+import { BALANCE } from '@/data/balance';
 import { clamp } from '@/utils/math';
 import { addTx, changeStat, firstRel, log, newId, partnerRel, player, playerAge, type Sim } from '../simulation/helpers';
 import { createRomanticInterest, divorce, haveChild, marry, newFriend, startDating } from '../relationships/relationships';
@@ -163,8 +164,8 @@ export function applyEffect(sim: Sim, e: Effect, ctx: EffectContext): void {
       return;
     }
     case 'debt': {
-      const amount = Math.round(e.amount * pi);
-      s.finances.cash += amount;
+      const amount = Math.round(e.amount * (e.kind === 'mortgage' ? s.economy.housingIndex : pi));
+      if (!e.financesAsset) s.finances.cash += amount;
       const existing = s.finances.debts.find((d) => d.kind === e.kind && d.label === e.label);
       if (existing) existing.principal += amount;
       else
@@ -173,9 +174,17 @@ export function applyEffect(sim: Sim, e: Effect, ctx: EffectContext): void {
           kind: e.kind,
           label: e.label,
           principal: amount,
-          rate: e.kind === 'consumer' ? 0.19 : e.kind === 'student' ? 0.045 : 0.08,
-          termYears: e.kind === 'consumer' ? 5 : 10,
+          rate:
+            e.kind === 'consumer'
+              ? BALANCE.economy.consumerDebtRate
+              : e.kind === 'student'
+                ? BALANCE.economy.studentLoanRate
+                : e.kind === 'mortgage'
+                  ? BALANCE.economy.mortgagePremium
+                  : BALANCE.economy.businessLoanRate,
+          termYears: e.kind === 'consumer' ? 5 : e.kind === 'mortgage' ? BALANCE.property.mortgageYears : 10,
         });
+      s.finances.debts = s.finances.debts.filter((d) => d.principal > 1);
       return;
     }
     case 'crime': {
@@ -238,6 +247,8 @@ export function applyEffect(sim: Sim, e: Effect, ctx: EffectContext): void {
       const def = getAssetDef(e.catalogId);
       if (!def) return;
       const value = Math.round(def.price * (def.property ? s.economy.housingIndex : pi));
+      const home = def.property && ['apartment', 'house', 'farm'].includes(def.kind) && !s.assets.some((a) => a.residence) && playerAge(s) >= 18;
+      if (home) s.livingWithParents = false;
       s.assets.push({
         id: newId(s, 'a'),
         catalogId: def.id,
@@ -247,7 +258,7 @@ export function applyEffect(sim: Sim, e: Effect, ctx: EffectContext): void {
         purchaseYear: s.year,
         value,
         condition: 70,
-        residence: false,
+        residence: home,
         lastIncome: 0,
       });
       return;

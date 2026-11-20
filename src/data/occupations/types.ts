@@ -42,4 +42,8 @@ export interface OccupationDef {
   rarity?: number;
   /** A criminal record blocks hiring. */
   cleanRecord?: boolean;
+  /** First calendar year the occupation exists (technology, institutions). */
+  availableFrom?: number;
+  /** Last calendar year the occupation exists. */
+  availableUntil?: number;
 }

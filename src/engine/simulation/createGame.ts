@@ -7,6 +7,7 @@ import { createRng, randomSeed, type Rng } from '../probability/rng';
 import { addRelationship, changeStat, endSim, log, type Sim } from './helpers';
 import { createPerson, inheritGenetics, npcOccupationFor, randomFirstName, randomLastName, randomLook, randomTraits } from '../npcs/factory';
 import { initialEconomy } from '../economy/market';
+import { getEraForStart } from '@/data/eras';
 import { initialCareer, initialCrime, initialEducation, initialFinances, initialHealth } from './initialState';
 import { SAVE_VERSION } from './version';
 import { getTrait } from '@/data/traits';
@@ -27,7 +28,7 @@ export interface NewLifeOptions {
   countryId?: string;
 }
 
-export function randomLifeOptions(seed = randomSeed()): NewLifeOptions {
+export function randomLifeOptions(seed = randomSeed(), startYear = 2026): NewLifeOptions {
   const rng = createRng(seed);
   const gender: Gender = rng.chance(0.5) ? 'male' : 'female';
   const country = getCountry('no');
@@ -35,11 +36,11 @@ export function randomLifeOptions(seed = randomSeed()): NewLifeOptions {
   const background: FamilyBackground =
     bgRoll < 0.1 ? 'wealthy' : bgRoll < 0.55 ? 'middle' : bgRoll < 0.8 ? 'working' : bgRoll < 0.93 ? 'single' : 'difficult';
   return {
-    firstName: randomFirstName(rng, gender),
+    firstName: randomFirstName(rng, gender, startYear),
     lastName: randomLastName(rng),
     gender,
     cityId: rng.pick(country.cities).id,
-    startYear: country.playableEras[0].startYear,
+    startYear,
     look: randomLook(rng),
     background,
     traits: randomTraits(rng, 2),
@@ -73,10 +74,11 @@ function eduFromRoll(r: number) {
 }
 
 function makeParent(s: GameState, rng: Rng, gender: Gender, birthYear: number, city: string, lastName: string, prof: ParentProfile, scenario: string): Person {
-  const edu = eduFromRoll(rng.range(prof.education[0], prof.education[1]));
+  const bias = getEraForStart(s.startYear).educationBias;
+  const edu = eduFromRoll(Math.max(0, rng.range(prof.education[0], prof.education[1]) + bias));
   const age = s.year - birthYear;
-  const occ = npcOccupationFor(rng, edu, age);
-  const wealth = Math.round(rng.range(prof.wealth[0], prof.wealth[1]) * (scenario === 'heir' ? 3 : 1));
+  const occ = npcOccupationFor(rng, edu, age, s.year);
+  const wealth = Math.round(rng.range(prof.wealth[0], prof.wealth[1]) * (scenario === 'heir' ? 3 : 1) * s.economy.priceIndex);
   const p = createPerson(s, rng, {
     gender,
     birthYear,
@@ -94,6 +96,7 @@ function makeParent(s: GameState, rng: Rng, gender: Gender, birthYear: number, c
 /** Creates a brand-new game state with the player born this year. */
 export function createGame(opts: NewLifeOptions): GameState {
   const seed = opts.seed ?? randomSeed();
+  const era = getEraForStart(opts.startYear);
   const rng = createRng(seed);
   const country = getCountry(opts.countryId ?? 'no');
   const s: GameState = {
@@ -116,7 +119,7 @@ export function createGame(opts: NewLifeOptions): GameState {
     pendingEvents: [],
     scheduled: [],
     eventHistory: {},
-    economy: initialEconomy(),
+    economy: initialEconomy(era.priceLevel, era.housingLevel),
     finances: initialFinances(),
     assets: [],
     education: initialEducation(),
@@ -229,8 +232,8 @@ export function createGame(opts: NewLifeOptions): GameState {
         birthYear: s.year - gAge,
         city: rng.chance(0.6) ? city : rng.pick(country.cities).id,
         lastName: parent.lastName,
-        education: eduFromRoll(rng.range(0, 0.7)),
-        wealth: Math.round(rng.range(prof.wealth[0], prof.wealth[1]) * 0.8),
+        education: eduFromRoll(Math.max(0, rng.range(0, 0.7) + era.educationBias)),
+        wealth: Math.round(rng.range(prof.wealth[0], prof.wealth[1]) * 0.8 * s.economy.priceIndex),
       });
       gp.occupationStatus = gAge >= 67 ? 'retired' : 'employed';
       gp.childrenIds.push(parent.id);

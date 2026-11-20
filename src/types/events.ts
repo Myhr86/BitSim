@@ -29,6 +29,8 @@ export type Condition =
   | { t: 'background'; value: string | string[] }
   | { t: 'debt'; kind?: DebtKind; min?: number; max?: number }
   | { t: 'salary'; min?: number; max?: number }
+  /** Calendar year window (historical events, technology availability). */
+  | { t: 'year'; min?: number; max?: number }
   | { t: 'any'; of: Condition[] }
   | { t: 'not'; c: Condition };
 
@@ -57,7 +59,8 @@ export type Effect =
   | { t: 'addCondition'; id: string; severity?: number }
   | { t: 'removeCondition'; id: string }
   | { t: 'addiction'; id: string; delta: number }
-  | { t: 'debt'; kind: DebtKind; amount: number; label: string }
+  /** Adds a loan. `financesAsset` = the loan paid for something received in the same outcome (no cash payout). */
+  | { t: 'debt'; kind: DebtKind; amount: number; label: string; financesAsset?: boolean }
   | { t: 'crime'; crime: string; severity: number }
   | { t: 'loseJob'; reason: 'fired' | 'laidOff' }
   | { t: 'performance'; delta: number }

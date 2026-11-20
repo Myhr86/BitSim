@@ -22,10 +22,14 @@ motion · PWA (manifest + offline service worker) · Capacitor config · balanci
 mass simulation · accessibility basics (aria labels, contrast tokens).
 ⏳ Remaining: see "Next" below.
 
+## Content pack 2 ✅
+Historical eras (1900–present) with year-driven mortality, medicine, economy, names and
+availability; ~37 historical events; ~45 new everyday events; 5 historical occupations.
+
 ## Next
 - English translation (`src/i18n/en.ts` + event text packs keyed by event id)
-- Historical eras (1900/1950/1990) using `plannedEras` + era profiles for prices,
-  occupations, technology and life expectancy
+- Era-specific social norms (e.g. women's labour market, marriage law history) and
+  pension system history (folketrygden from 1967)
 - More event content (target: 1000+), especially events reacting to specific
   occupations, assets and long chains (multi-step storylines)
 - Deeper business management (hire/fire, expand, sell company)
